@@ -1,8 +1,8 @@
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask.templating import render_template
-from sqlalchemy import insert
-
+from sqlalchemy import create_engine
+from sqlalchemy import text
 
 
 app = Flask(__name__)
@@ -10,6 +10,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 
 db = SQLAlchemy(app)
+
+engine = create_engine("mysql://root:frey@localhost/social")
 
 
 # Routes
@@ -29,7 +31,9 @@ def create_profile():
     user_pass = request.form.get("user_pass")
 
     if user_name != '' and user_pass != '':
-        insert()
+        with engine.begin() as connection:
+            result = connection.execute(Users.select())
+            connection.execute(Users.insert(), {"email": "email", "user_name": user_name, "user_pass": user_pass})
 
 
 
