@@ -10,11 +10,11 @@ CREATE_USERS_TABLE = (
 )
 
 CREATE_TIMELINE_TABLE = (
-    "CREATE TABLE IF NOT EXISTS timeline (post_id SERIAL PRIMARY KEY, post TEXT, post_user TEXT, date TIMESTAMP, FOREIGN KEY(post_user) REFERENCES users(user_name);"
+    "CREATE TABLE IF NOT EXISTS timeline (post_id SERIAL PRIMARY KEY, post TEXT, post_user TEXT, date TIMESTAMP);"
 )
 
 CREATE_PROFILE_TABLE = (
-    "CREATE TABLE IF NOT EXISTS profiles (profile_id SERIAL PRIMARY KEY, bio TEXT, user_profile_id INTEGER, trophy INTEGER, FOREIGN KEY(user_profile_id) REFERENCES users(id);"
+    "CREATE TABLE IF NOT EXISTS profiles (profile_id SERIAL PRIMARY KEY, bio TEXT, user_name TEXT UNIQUE, trophy INTEGER);"
 )
 
 INSERT_USER = (
@@ -26,20 +26,20 @@ LOGIN_USER = (
 )
 
 GATHER_TIMELINE = (
-    ""
-)
-
-DISPLAY_TIMELINE = (
-
-    ""
+    "SELECT post, post_user FROM timeline"
 )
 
 CREATE_POST = (
-    ""
+    "INSERT INTO timeline(post, post_user) VALUES (%s, %s)"
 )
 
+CREATE_BIO = (
+    "INSERT INTO profiles(bio, user_name, trophy) VALUES (%s, %s, %s)"
+)
 
-
+GET_BIO = (
+    "SELECT EXISTS (SELECT * FROM profiles WHERE profile_id = %s)"
+)
 
 load_dotenv()
 
@@ -52,6 +52,7 @@ connection = psycopg2.connect(url)
 def index():
     return 
 
+#Login endpoint, probably need to add more to logic for this to actually work
 @app.get("/login")
 def login_check():
     data = request.get_json()
@@ -64,6 +65,7 @@ def login_check():
     return {"login successful": user_name}, 201
 
 
+#End point for signing a new user up
 @app.post("/signup")
 def create_profile():
     data = request.get_json()
@@ -77,27 +79,51 @@ def create_profile():
     return {"user name": user_name,}, 201
     
 
-
-@app.route("/timeline", methods=['GET'])
+#Stuck here, need to add the logic to return json of all posts made and the users who made the posts
+@app.get("/timeline")
 def timeline():
-    return
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(CREATE_TIMELINE_TABLE)
+            cursor.execute(GATHER_TIMELINE())
+            
+
+#End point for user to add a post to the timeline
+@app.post("/timeline")
+def create_post():
+    data = request.get_json()
+    post = data["post"]
+    post_user = data["post_user"]
+
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(CREATE_TIMELINE_TABLE)
+            cursor.execute(CREATE_POST, (post, post_user))
+    return {"Successful post by": post_user,}, 201
 
 
-@app.route("/timeline", methods=['POST'])
-def new_post():
-    return
-
-
-@app.route("/timeline", methods=['DELETE'])
-def delete_post():
-    return
-
-
-@app.route("/bio", methods=['POST'])
+#End point for users to create a bio section
+@app.post("/bio")
 def create_bio():
-    return
+    data = request.get_json()
+    bio = data["bio"]
+    post_user = data["post_user"]
+    trophy = data["trophy"]
+
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(CREATE_PROFILE_TABLE)
+            cursor.execute(CREATE_BIO, (bio, post_user, trophy))
+    return {"Bio Updated": post_user,}, 201
 
 
-@app.route("/bio", methods=['GET'])
+#End point for fetching a users bio
+@app.get("/bio")
 def view_bio():
-    return
+    data = request.get_json()
+    profile_id = data["profile_id"]
+
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(GET_BIO, (profile_id))
+    return {"Bio for": profile_id,}, 201
