@@ -48,10 +48,6 @@ url = os.getenv("DATABASE_URL")
 connection = psycopg2.connect(url)
 
 
-@app.get("/")
-def index():
-    return render_template('index.html')
-
 #Login endpoint, probably need to add more to logic for this to actually work
 @app.get("/login")
 def login_check():
