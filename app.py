@@ -50,7 +50,7 @@ connection = psycopg2.connect(url)
 
 @app.get("/")
 def index():
-    return 
+    return render_template('index.html')
 
 #Login endpoint, probably need to add more to logic for this to actually work
 @app.get("/login")
@@ -80,12 +80,12 @@ def create_profile():
     
 
 #Stuck here, need to add the logic to return json of all posts made and the users who made the posts
-@app.get("/timeline")
-def timeline():
-    with connection:
-        with connection.cursor() as cursor:
-            cursor.execute(CREATE_TIMELINE_TABLE)
-            cursor.execute(GATHER_TIMELINE())
+#@app.get("/timeline")
+#def timeline():
+#    with connection:
+#        with connection.cursor() as cursor:
+#            cursor.execute(CREATE_TIMELINE_TABLE)
+#            cursor.execute(GATHER_TIMELINE())
             
 
 #End point for user to add a post to the timeline
