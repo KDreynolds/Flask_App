@@ -2,8 +2,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 from flask import Flask, render_template, url_for, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask.templating import render_template
+
 
 CREATE_USERS_TABLE = (
     "CREATE TABLE IF NOT EXISTS users (user_id SERIAL PRIMARY KEY, user_name TEXT UNIQUE, user_pass TEXT);"
@@ -43,9 +42,14 @@ GET_BIO = (
 
 load_dotenv()
 
+
 app = Flask(__name__)
 url = os.getenv("DATABASE_URL")
 connection = psycopg2.connect(url)
+
+@app.get("/")
+def index():
+    return render_template('index.html')
 
 
 #Login endpoint, probably need to add more to logic for this to actually work
